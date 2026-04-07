@@ -1,33 +1,44 @@
 import pymongo
+import os
 from datetime import datetime
-import sys
+from dotenv import load_dotenv
 
-# الرابط القوي اللي انت اخترته
-uri = "mongodb://m2117513495_db_user:RTJfHzyzO6sDTG25@cluster0-shard-00-00.b2placb.mongodb.net:27017,cluster0-shard-00-01.b2placb.mongodb.net:27017,cluster0-shard-00-02.b2placb.mongodb.net:27017/Agina_Academy?ssl=true&replicaSet=atlas-9c4z2p-shard-0&authSource=admin&retryWrites=true&w=majority"
+# تحميل المتغيرات من ملف .env لو موجود (عشان الترمكس)
+load_dotenv()
 
-try:
-    print("⏳ أجينا بيحاول يكلم السيرفر... اصبر عليه شوية")
-    # زيادة وقت الانتظار لـ 45 ثانية عشان الترمكس والشبكة
-    client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=45000, connectTimeoutMS=45000)
+# قراءة الرابط من البيئة (سواء .env أو GitHub Secrets)
+uri = os.getenv("MONGO_URI")
 
-    # اختبار الاتصال
-    client.admin.command('ping')
-    print("✅ أخيراً! السيرفر رد والاتصال شغال")
+def start_agina_engine():
+    if not uri:
+        print("❌ خطأ: مش لاقي رابط MONGO_URI. تأكد من ملف .env")
+        return
 
-    db = client["Agina_Academy"]
-    col = db["Activity_Logs"]
+    try:
+        print("⏳ جاري إطلاق محرك أجينا والاتصال بالمانجو...")
+        # استخدام إعدادات الاتصال اللي نجحت معانا قبل كدة
+        client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=30000)
+        
+        # التأكد من الاتصال (Ping)
+        client.admin.command('ping')
+        print("✅ تم تأكيد الاتصال.. السحابة جاهزة!")
 
-    data = {
-        "status": "Working 🔥",
-        "device": "Termux-Android",
-        "time": datetime.now()
-    }
+        db = client["Agina_Academy"]
+        col = db["Activity_Logs"]
 
-    col.insert_one(data)
-    print("✅ تم إرسال أول بيانات للسحابة بنجاح!")
+        # تسجيل حركة تشغيل النظام
+        status_update = {
+            "event": "System Launch",
+            "status": "Online 🔥",
+            "device": "Termux_Main",
+            "time": datetime.now()
+        }
 
-except Exception as e:
-    print("❌ لسه فيه مشكلة في الشبكة:")
-    print(f"نوع الخطأ: {type(e).__name__}")
-    print(f"التفاصيل: {e}")
-    print("\n💡 نصيحة أجينا: جرب تقفل الواي فاي وتفتح بيانات الهاتف (Data) أو العكس وجرب تاني.")
+        col.insert_one(status_update)
+        print("✅ تم إرسال إشارة التشغيل لقاعدة البيانات.")
+
+    except Exception as e:
+        print(f"❌ المانجو لسه معصلج: {e}")
+
+if __name__ == "__main__":
+    start_agina_engine()
