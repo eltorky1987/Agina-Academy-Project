@@ -1,34 +1,33 @@
-import os
-from pymongo import MongoClient
-from dotenv import load_dotenv
+import pymongo
 from datetime import datetime
+import sys
 
-# تحميل بيانات الرابط من ملف .env المخفي
-load_dotenv()
-uri = os.getenv("MONGO_URI")
+# الرابط القوي اللي انت اخترته
+uri = "mongodb://m2117513495_db_user:RTJfHzyzO6sDTG25@cluster0-shard-00-00.b2placb.mongodb.net:27017,cluster0-shard-00-01.b2placb.mongodb.net:27017,cluster0-shard-00-02.b2placb.mongodb.net:27017/Agina_Academy?ssl=true&replicaSet=atlas-9c4z2p-shard-0&authSource=admin&retryWrites=true&w=majority"
 
-def get_db_connection():
-    try:
-        client = MongoClient(uri)
-        return client["Agina_Academy"]
-    except Exception as e:
-        print(f"Error connecting to Mango: {e}")
-        return None
+try:
+    print("⏳ أجينا بيحاول يكلم السيرفر... اصبر عليه شوية")
+    # زيادة وقت الانتظار لـ 45 ثانية عشان الترمكس والشبكة
+    client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=45000, connectTimeoutMS=45000)
 
-def log_activity(action, details):
-    db = get_db_connection()
-    if db is not None:
-        logs = db["Activity_Logs"]
-        log_entry = {
-            "user": "agina2026",
-            "action": action,
-            "details": details,
-            "timestamp": datetime.now()
-        }
-        result = logs.insert_one(log_entry)
-        print(f"✅ تم تسجيل النشاط بنجاح: {action}")
-        return result.inserted_id
+    # اختبار الاتصال
+    client.admin.command('ping')
+    print("✅ أخيراً! السيرفر رد والاتصال شغال")
 
-if __name__ == "__main__":
-    # تجربة بسيطة للتأكد من الاتصال
-    log_activity("System Startup", "مشروع الأكاديمية بدأ العمل بنجاح")
+    db = client["Agina_Academy"]
+    col = db["Activity_Logs"]
+
+    data = {
+        "status": "Working 🔥",
+        "device": "Termux-Android",
+        "time": datetime.now()
+    }
+
+    col.insert_one(data)
+    print("✅ تم إرسال أول بيانات للسحابة بنجاح!")
+
+except Exception as e:
+    print("❌ لسه فيه مشكلة في الشبكة:")
+    print(f"نوع الخطأ: {type(e).__name__}")
+    print(f"التفاصيل: {e}")
+    print("\n💡 نصيحة أجينا: جرب تقفل الواي فاي وتفتح بيانات الهاتف (Data) أو العكس وجرب تاني.")
