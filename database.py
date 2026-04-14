@@ -1,44 +1,36 @@
 import pymongo
-import os
+from urllib.parse import quote_plus
 from datetime import datetime
-from dotenv import load_dotenv
 
-# تحميل المتغيرات من ملف .env لو موجود (عشان الترمكس)
-load_dotenv()
+# بياناتك الحقيقية مع التشفير السحري (quote_plus)
+user = quote_plus("m2117513495_db_user")
+password = quote_plus("RTJfHzyzO6sDTG25")
 
-# قراءة الرابط من البيئة (سواء .env أو GitHub Secrets)
-uri = os.getenv("MONGO_URI")
+# الرابط "الصافي" بعد التعديل
+uri = f"mongodb://{user}:{password}@cluster0-shard-00-00.b2placb.mongodb.net:27017,cluster0-shard-00-01.b2placb.mongodb.net:27017,cluster0-shard-00-02.b2placb.mongodb.net:27017/Agina_Academy?ssl=true&replicaSet=atlas-9c4z2p-shard-0&authSource=admin&retryWrites=true&w=majority"
 
-def start_agina_engine():
-    if not uri:
-        print("❌ خطأ: مش لاقي رابط MONGO_URI. تأكد من ملف .env")
-        return
-
+def launch_agina_academy():
     try:
-        print("⏳ جاري إطلاق محرك أجينا والاتصال بالمانجو...")
-        # استخدام إعدادات الاتصال اللي نجحت معانا قبل كدة
+        print("⏳ جاري الاتصال بالرابط المشفر (Encoded URI)...")
         client = pymongo.MongoClient(uri, serverSelectionTimeoutMS=30000)
         
-        # التأكد من الاتصال (Ping)
+        # اختبار الاتصال (Ping)
         client.admin.command('ping')
-        print("✅ تم تأكيد الاتصال.. السحابة جاهزة!")
+        print("✅ أخيراً! الاتصال اشتغل تمام وبدون 'زفت أرور'")
 
         db = client["Agina_Academy"]
         col = db["Activity_Logs"]
-
-        # تسجيل حركة تشغيل النظام
-        status_update = {
-            "event": "System Launch",
-            "status": "Online 🔥",
-            "device": "Termux_Main",
-            "time": datetime.now()
-        }
-
-        col.insert_one(status_update)
-        print("✅ تم إرسال إشارة التشغيل لقاعدة البيانات.")
+        
+        # تسجيل أول عملية ناجحة بأسلوب الـ Encode
+        res = col.insert_one({
+            "user": "eltorky1987",
+            "status": "Encoded Connection 🔥",
+            "time": datetime.utcnow()
+        })
+        print(f"✅ تم تسجيل البيانات بنجاح | ID: {res.inserted_id}")
 
     except Exception as e:
-        print(f"❌ المانجو لسه معصلج: {e}")
+        print(f"❌ لسه فيه مشكلة (مستحيل بعد ده): {e}")
 
 if __name__ == "__main__":
-    start_agina_engine()
+    launch_agina_academy()
